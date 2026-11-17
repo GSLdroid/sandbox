@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Giant Steps Sandbox</title>
+<style>
+  :root {
+    --bg: #f4f7fb;
+    --card: #ffffff;
+    --accent: #2563eb;
+    --text: #1e293b;
+    --muted: #64748b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 1.25rem;
+    line-height: 1.6;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    text-align: center;
+    padding: 3rem 1.5rem;
+  }
+  header h1 { margin: 0; font-size: 3rem; }
+  header p { margin: 0.5rem 0 0; font-size: 1.4rem; opacity: 0.9; }
+  main {
+    max-width: 900px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem;
+  }
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    margin-bottom: 1.5rem;
+  }
+  .placeholder {
+    border: 3px dashed #cbd5e1;
+    border-radius: 16px;
+    padding: 3rem 2rem;
+    text-align: center;
+    color: var(--muted);
+  }
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 1rem;
+    padding: 2rem;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Giant Steps Sandbox</h1>
+    <p>AI Sandbox &mdash; tell the agent what to change</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Welcome!</h2>
+      <p>This page is a playground. Ask the AI agent, in plain English, to change anything you see: colours, words, buttons, pictures, or whole new sections. Then refresh and watch it happen.</p>
+    </section>
+
+    <section class="placeholder" id="content">
+      <p>&#x2728; Your ideas go here &#x2728;</p>
+      <p>Try: "Add a big green button that says Hello" or "Make the background purple."</p>
+    </section>
+  </main>
+
+  <footer>Giant Steps Sandbox &middot; a safe place to experiment</footer>
+</body>
+</html>
