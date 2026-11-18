@@ -6,11 +6,12 @@
 <title>Giant Steps Sandbox</title>
 <style>
   :root {
-    --bg: #f4f7fb;
+    --bg: #eef2f8;
     --card: #ffffff;
-    --accent: #800000;
-    --text: #1e293b;
-    --muted: #64748b;
+    --accent: #041E42;   /* Oilers navy */
+    --accent2: #FF4C00;  /* Oilers orange */
+    --text: #14213d;
+    --muted: #5b6b85;
   }
   * { box-sizing: border-box; }
   body {
@@ -26,9 +27,29 @@
     color: #fff;
     text-align: center;
     padding: 3rem 1.5rem;
+    border-bottom: 8px solid var(--accent2);
   }
   header h1 { margin: 0; font-size: 3rem; }
   header p { margin: 0.5rem 0 0; font-size: 1.4rem; opacity: 0.9; }
+  header .fan { color: var(--accent2); font-weight: 700; letter-spacing: 0.05em; margin-top: 0.75rem; opacity: 1; }
+  h2 { color: var(--accent); border-left: 8px solid var(--accent2); padding-left: 0.75rem; margin-top: 0; }
+  h3 { margin: 1.25rem 0 0.5rem; color: var(--accent); }
+  .game {
+    display: grid; grid-template-columns: 1fr auto; gap: 0.25rem 1rem; align-items: center;
+    padding: 0.9rem 1rem; margin-bottom: 0.6rem; border-radius: 12px;
+    background: #f6f8fc; border-left: 8px solid #cbd5e1;
+  }
+  .game.W { border-left-color: #16a34a; }
+  .game.L { border-left-color: #dc2626; }
+  .game.OTL { border-left-color: var(--accent2); }
+  .game.next { border-left-color: var(--accent2); }
+  .game .opp { font-weight: 700; font-size: 1.3rem; }
+  .game .meta { color: var(--muted); font-size: 1.05rem; }
+  .game .result { text-align: right; font-weight: 800; font-size: 1.5rem; }
+  .game .result small { display: block; font-size: 1rem; font-weight: 700; }
+  .W .result small { color: #16a34a; } .L .result small { color: #dc2626; } .OTL .result small { color: var(--accent2); }
+  .game .when { text-align: right; font-weight: 700; color: var(--accent); }
+  .updated { color: var(--muted); font-size: 0.95rem; margin: 0.75rem 0 0; }
   main {
     max-width: 900px;
     margin: 2.5rem auto;
@@ -60,12 +81,19 @@
   <header>
     <h1>Giant Steps Sandbox</h1>
     <p>AI Sandbox &mdash; tell the agent what to change</p>
+    <p class="fan">&#x1F3D2; LET'S GO OILERS! &#x1F3D2;</p>
   </header>
 
   <main>
     <section class="card">
       <h2>Welcome!</h2>
       <p>This page is a playground. Ask the AI agent, in plain English, to change anything you see: colours, words, buttons, pictures, or whole new sections. Then refresh and watch it happen.</p>
+    </section>
+
+    <section class="card" id="game-tracker">
+      <h2>&#x1F3D2; Oilers Game Tracker</h2>
+      <div id="tracker"><p class="meta">Loading the latest Oilers games&hellip;</p></div>
+      <p class="updated" id="tracker-updated"></p>
     </section>
 
     <section class="placeholder" id="content">
@@ -75,5 +103,78 @@
   </main>
 
   <footer>Giant Steps Sandbox &middot; a safe place to experiment</footer>
+
+  <script>
+  (function () {
+    var TZ = "America/Edmonton"; // Mountain Time
+    var box = document.getElementById("tracker");
+    function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+    function fmtDate(d) { return d.toLocaleDateString("en-CA", { timeZone: TZ, weekday: "short", month: "short", day: "numeric" }); }
+    function fmtTime(d) { return d.toLocaleTimeString("en-CA", { timeZone: TZ, hour: "numeric", minute: "2-digit" }).replace(/\./g, "").toUpperCase() + " MT"; }
+    function info(g) {
+      var home = g.home.abbrev === "EDM";
+      var me = home ? g.home : g.away, opp = home ? g.away : g.home;
+      return { home: home, me: me, opp: opp, d: new Date(g.start) };
+    }
+    function render(data) {
+      var now = Date.now();
+      var finals = data.games.filter(function (g) { return g.state === "FINAL" && g.home.score != null; });
+      var upcoming = data.games.filter(function (g) { return g.state === "FUT" && new Date(g.start).getTime() > now; });
+      var last3 = finals.slice(-3).reverse(), next2 = upcoming.slice(0, 2);
+      if (!last3.length && !next2.length) throw new Error("no games");
+      var html = "<h3>Last 3 games</h3>";
+      last3.forEach(function (g) {
+        var x = info(g), won = x.me.score > x.opp.score;
+        var cls = won ? "W" : (g.period === "REG" ? "L" : "OTL");
+        var tag = won ? "WIN" : (g.period === "REG" ? "LOSS" : "OT LOSS");
+        var suffix = g.period === "OT" ? " (OT)" : g.period === "SO" ? " (SO)" : "";
+        html += '<div class="game ' + cls + '"><div><div class="opp">' + (x.home ? "vs " : "at ") + esc(x.opp.name) + '</div>' +
+          '<div class="meta">' + fmtDate(x.d) + ' &middot; ' + (x.home ? "Home" : "Away") + '</div></div>' +
+          '<div class="result">EDM ' + x.me.score + ' &ndash; ' + x.opp.score + ' ' + esc(x.opp.abbrev) + suffix + '<small>' + tag + '</small></div></div>';
+      });
+      html += "<h3>Next 2 games</h3>";
+      next2.forEach(function (g) {
+        var x = info(g);
+        html += '<div class="game next"><div><div class="opp">' + (x.home ? "vs " : "at ") + esc(x.opp.name) + '</div>' +
+          '<div class="meta">' + (x.home ? "Home" : "Away") + '</div></div>' +
+          '<div class="when">' + fmtDate(x.d) + '<br>' + fmtTime(x.d) + '</div></div>';
+      });
+      if (!next2.length) html += '<p class="meta">No upcoming games scheduled right now.</p>';
+      box.innerHTML = html;
+      if (data.updated) {
+        document.getElementById("tracker-updated").textContent = "Live data via ESPN, loaded " +
+          fmtDate(new Date(data.updated)) + " " + fmtTime(new Date(data.updated)) + ". Times shown in Mountain Time.";
+      }
+    }
+    // Live data: ESPN's free public schedule feed (allows browser requests, no key needed)
+    var FEED = "https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/teams/edm/schedule";
+    function normalize(json) {
+      var games = [];
+      (json.events || []).forEach(function (e) {
+        var c = e.competitions && e.competitions[0]; if (!c) return;
+        var t = c.status.type, side = {};
+        c.competitors.forEach(function (x) {
+          side[x.homeAway] = { abbrev: x.team.abbreviation, name: x.team.displayName,
+            score: x.score && x.score.displayValue != null ? Number(x.score.displayValue) : null };
+        });
+        if (!side.home || !side.away) return;
+        var detail = t.detail || "";
+        games.push({
+          start: e.date, state: t.completed ? "FINAL" : (t.state === "pre" ? "FUT" : "LIVE"),
+          period: /\/SO/.test(detail) ? "SO" : /\/OT/.test(detail) ? "OT" : "REG",
+          home: side.home, away: side.away
+        });
+      });
+      games.sort(function (a, b) { return new Date(a.start) - new Date(b.start); });
+      return { games: games, updated: json.timestamp };
+    }
+    fetch(FEED)
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (j) { render(normalize(j)); })
+      .catch(function () {
+        box.innerHTML = '<p class="meta">Sorry, we couldn\'t load the Oilers games right now. Please refresh in a minute. &#x1F3D2;</p>';
+      });
+  })();
+  </script>
 </body>
 </html>
